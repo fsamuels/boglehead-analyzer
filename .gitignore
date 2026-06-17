@@ -1,5 +1,6 @@
 # Cached raw price data (fetched from yfinance, not committed)
-data/raw/
+data/raw/*
+!data/raw/.gitkeep
 
 # Python
 __pycache__/
