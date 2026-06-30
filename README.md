@@ -55,9 +55,14 @@ jupyter lab
 
 ## Status
 
-Module 1 (data ingestion) is implemented and tested. Remaining modules are being
-built one at a time, each explored in a notebook first and then refactored into a
-clean module — see the per-module PRs.
+Modules 1 (data ingestion) and 2 (return calculations) are implemented and
+tested. Remaining modules are being built one at a time, each explored in a
+notebook first and then refactored into a clean module — see the per-module PRs.
+
+The configurable ticker universe lives in [`analysis/config.py`](analysis/config.py)
+as `AVAILABLE_TICKERS` (`VTI`, `VXUS`, `VOO`, `VT`, `BND`) with matching
+`EXPENSE_RATIOS`. The default demo portfolio (`VTI` / `VXUS` / `BND`) is kept
+separate so adding a selectable ETF never changes the default allocation.
 
 ### Module 1 — Data ingestion
 
@@ -74,10 +79,26 @@ Explore it in [`notebooks/01_data_ingestion.ipynb`](notebooks/01_data_ingestion.
 tests live in [`tests/test_fetch.py`](tests/test_fetch.py) and run offline (yfinance
 is stubbed).
 
+### Module 2 — Return calculations
+
+`analysis/returns.py` turns a price frame into returns using `pandas` and
+vectorized `NumPy` math. Tickers with a shorter history keep their leading
+`NaN`s, so a newer ETF never contaminates an older one's numbers.
+
+- `daily_returns(prices)` — simple percentage returns via `.pct_change()`.
+- `log_returns(prices)` — `ln(P_t / P_{t-1})`; time-additive, handy for aggregation.
+- `cumulative_returns(daily_ret)` — growth of $1 to date, `(1 + r).cumprod() - 1`.
+- `annualized_return(daily_ret, periods_per_year=252)` — geometric CAGR per ticker.
+- `rolling_return(daily_ret, window=252)` — trailing 1-year return across time.
+
+Explore it in [`notebooks/02_returns.ipynb`](notebooks/02_returns.ipynb); tests
+live in [`tests/test_returns.py`](tests/test_returns.py) and run on small,
+hand-checkable frames (no network).
+
 | Module | Area | Status |
 |---|---|---|
 | 1 | Data ingestion (`analysis/fetch.py`) | ✅ Complete |
-| 2 | Return calculations (`analysis/returns.py`) | Not started |
+| 2 | Return calculations (`analysis/returns.py`) | ✅ Complete |
 | 3 | Portfolio construction (`analysis/portfolio.py`) | Not started |
 | 4 | Rebalancing simulator (`analysis/rebalancing.py`) | Not started |
 | 5 | Cost drag analysis (`analysis/costs.py`) | Not started |
