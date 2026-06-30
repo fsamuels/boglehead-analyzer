@@ -55,12 +55,28 @@ jupyter lab
 
 ## Status
 
-Scaffolding in place. Modules are being built one at a time, each explored in a
-notebook first and then refactored into a clean module — see the per-module PRs.
+Module 1 (data ingestion) is implemented and tested. Remaining modules are being
+built one at a time, each explored in a notebook first and then refactored into a
+clean module — see the per-module PRs.
+
+### Module 1 — Data ingestion
+
+`analysis/fetch.py` pulls historical **adjusted close** prices from `yfinance` and
+caches them as one CSV per ticker under `data/raw/` (git-ignored):
+
+- `fetch_prices(tickers, start, end=None)` — download adjusted closes, drop fully
+  empty rows, return a date-indexed `DataFrame` (one column per ticker).
+- `load_or_fetch(tickers, start, end=None)` — serve from the CSV cache when fresh,
+  otherwise fetch and rewrite it. Freshness accounts for yfinance's exclusive
+  `end` date and weekends, so the cache isn't perpetually invalidated.
+
+Explore it in [`notebooks/01_data_ingestion.ipynb`](notebooks/01_data_ingestion.ipynb);
+tests live in [`tests/test_fetch.py`](tests/test_fetch.py) and run offline (yfinance
+is stubbed).
 
 | Module | Area | Status |
 |---|---|---|
-| 1 | Data ingestion (`analysis/fetch.py`) | Not started |
+| 1 | Data ingestion (`analysis/fetch.py`) | ✅ Complete |
 | 2 | Return calculations (`analysis/returns.py`) | Not started |
 | 3 | Portfolio construction (`analysis/portfolio.py`) | Not started |
 | 4 | Rebalancing simulator (`analysis/rebalancing.py`) | Not started |
