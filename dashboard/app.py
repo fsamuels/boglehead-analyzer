@@ -10,15 +10,26 @@ Run locally with:
 
 from __future__ import annotations
 
+from dash import Dash
 
-def create_app():
+from dashboard.callbacks import register_callbacks
+from dashboard.layout import build_layout
+
+
+def create_app() -> Dash:
     """Construct and return the configured Dash app."""
-    raise NotImplementedError
+    app = Dash(__name__, title="Boglehead Portfolio Analyzer")
+    app.layout = build_layout()
+    register_callbacks(app)
+    return app
 
 
 def main() -> None:
     """Run the development server on localhost."""
-    raise NotImplementedError
+    app = create_app()
+    # debug=True is disabled: Dash 2.x's dev-tools reloader calls the
+    # long-removed pkgutil.find_loader, which crashes on Python 3.12+.
+    app.run(debug=False)
 
 
 if __name__ == "__main__":

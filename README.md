@@ -41,11 +41,15 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Run the dashboard (once Module 6 is implemented):
+Run the dashboard:
 
 ```bash
 python -m dashboard.app
 ```
+
+Then open [http://127.0.0.1:8050](http://127.0.0.1:8050). Pick your ETFs, set an
+allocation, a date range, and an initial investment, then click **Run analysis**
+to fetch/cache the price data and populate the four tabs.
 
 Explore a module interactively:
 
@@ -55,11 +59,10 @@ jupyter lab
 
 ## Status
 
-Modules 1 (data ingestion), 2 (return calculations), 3 (portfolio
-construction), 4 (rebalancing simulator), and 5 (cost drag analysis) are
-implemented and tested. Remaining modules are being built one at a time, each
-explored in a notebook first and then refactored into a clean module — see
-the per-module PRs.
+All six modules are implemented and tested — the analyzer is feature-complete
+per the original spec, from data ingestion through the interactive dashboard.
+Each module was explored in a notebook first (where applicable) and then
+refactored into a clean module — see the per-module PRs.
 
 The configurable ticker universe lives in [`analysis/config.py`](analysis/config.py)
 as `AVAILABLE_TICKERS` (`VTI`, `VXUS`, `VOO`, `VT`, `BND`) with matching
@@ -167,6 +170,44 @@ Explore it in [`notebooks/05_cost_drag.ipynb`](notebooks/05_cost_drag.ipynb);
 tests live in [`tests/test_costs.py`](tests/test_costs.py) and run on small,
 hand-checkable series (no network).
 
+### Module 6 — Dashboard
+
+`dashboard/` wires all five analysis modules into an interactive Dash app.
+The layout (`dashboard/layout.py`) and callbacks (`dashboard/callbacks.py`)
+are kept separate: layout only defines components and their ids, callbacks
+only call into `analysis/` and reshape results into Plotly figures and
+`DataTable` rows — no math is duplicated in the dashboard layer.
+
+- **Controls**: a multi-select ETF dropdown, one allocation slider per
+  selected ticker (generated dynamically and normalized automatically, so
+  they never have to sum to exactly 100%), a date range picker, an initial
+  investment input, a rebalancing strategy selector, and a drift-threshold
+  slider. Everything is gathered behind an explicit **Run analysis** button
+  — one click fetches/caches the price data and computes all four tabs in a
+  single pass, rather than re-fetching on every keystroke.
+- **Returns tab**: cumulative return and rolling 1-year return charts, plus
+  an annualized return table — one row per selected ticker.
+- **Portfolio tab**: portfolio value over time, and an allocation-drift area
+  chart showing each asset's share of the total across the full date range.
+- **Rebalancing tab**: a `"none"` vs. `"annual"` vs. `"threshold"` strategy
+  comparison chart, plus the paginated buy/sell event log for whichever
+  strategy is selected in the controls.
+- **Cost Drag tab**: this portfolio's blended expense ratio compared against
+  a hypothetical 1.00% active fund over its actual price history, plus a
+  pure-math 30-year projection table (using the portfolio's own historical
+  annualized return) across a few representative expense ratios.
+
+Edge cases are handled inline rather than left to crash the app: an empty
+ticker selection, a non-positive investment amount, all-zero allocation
+sliders, an insufficient date range, and fetch failures all clear the charts
+and show a message in place of a traceback.
+
+Run it locally with `python -m dashboard.app` (see
+[Getting started](#getting-started)); tests live in
+[`tests/test_dashboard.py`](tests/test_dashboard.py) and check the app wires
+together and that the callback helper functions format data correctly —
+they don't drive a real browser.
+
 | Module | Area | Status |
 |---|---|---|
 | 1 | Data ingestion (`analysis/fetch.py`) | ✅ Complete |
@@ -174,7 +215,7 @@ hand-checkable series (no network).
 | 3 | Portfolio construction (`analysis/portfolio.py`) | ✅ Complete |
 | 4 | Rebalancing simulator (`analysis/rebalancing.py`) | ✅ Complete |
 | 5 | Cost drag analysis (`analysis/costs.py`) | ✅ Complete |
-| 6 | Dashboard (`dashboard/`) | Not started |
+| 6 | Dashboard (`dashboard/`) | ✅ Complete |
 
 ## Disclaimer
 
