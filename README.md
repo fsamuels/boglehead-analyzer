@@ -55,10 +55,10 @@ jupyter lab
 
 ## Status
 
-Modules 1 (data ingestion), 2 (return calculations), and 3 (portfolio
-construction) are implemented and tested. Remaining modules are being built
-one at a time, each explored in a notebook first and then refactored into a
-clean module — see the per-module PRs.
+Modules 1 (data ingestion), 2 (return calculations), 3 (portfolio
+construction), and 4 (rebalancing simulator) are implemented and tested.
+Remaining modules are being built one at a time, each explored in a notebook
+first and then refactored into a clean module — see the per-module PRs.
 
 The configurable ticker universe lives in [`analysis/config.py`](analysis/config.py)
 as `AVAILABLE_TICKERS` (`VTI`, `VXUS`, `VOO`, `VT`, `BND`) with matching
@@ -117,12 +117,38 @@ Explore it in [`notebooks/03_portfolio.ipynb`](notebooks/03_portfolio.ipynb);
 tests live in [`tests/test_portfolio.py`](tests/test_portfolio.py) and run on
 small, hand-checkable frames (no network).
 
+### Module 4 — Rebalancing simulator
+
+`analysis/rebalancing.py` simulates and compares three rebalancing
+strategies via a stateful day-by-day loop over the price history, reusing
+`portfolio.validate_weights` so weight checks stay in one place.
+
+- `simulate(prices, weights, initial_investment, strategy, threshold=0.05)` —
+  core simulation loop for one strategy (`"none"`, `"annual"`, or
+  `"threshold"`). Starts from the same lump-sum share allocation as
+  `portfolio.build_portfolio`, then on any day that triggers a rebalance,
+  resizes shares back to the target dollar weights at that day's prices.
+  Returns `(portfolio_values, rebalance_log)` — a per-ticker-plus-`"total"`
+  value frame, and a log of every buy/sell with date, asset, action, and
+  dollar amount. Days with an incomplete price row (a newer ETF that hasn't
+  started trading) are never rebalanced.
+- `_needs_rebalance_threshold(current_weights, target_weights, threshold)` —
+  `True` if any asset's current weight deviates from target by more than
+  `threshold`.
+- `compare_strategies(prices, weights, initial_investment)` — runs all three
+  strategies and returns their total portfolio values side by side as a
+  `DataFrame` with columns `"none"`, `"annual"`, `"threshold"`.
+
+Explore it in [`notebooks/04_rebalancing.ipynb`](notebooks/04_rebalancing.ipynb);
+tests live in [`tests/test_rebalancing.py`](tests/test_rebalancing.py) and run
+on small, hand-checkable frames (no network).
+
 | Module | Area | Status |
 |---|---|---|
 | 1 | Data ingestion (`analysis/fetch.py`) | ✅ Complete |
 | 2 | Return calculations (`analysis/returns.py`) | ✅ Complete |
 | 3 | Portfolio construction (`analysis/portfolio.py`) | ✅ Complete |
-| 4 | Rebalancing simulator (`analysis/rebalancing.py`) | Not started |
+| 4 | Rebalancing simulator (`analysis/rebalancing.py`) | ✅ Complete |
 | 5 | Cost drag analysis (`analysis/costs.py`) | Not started |
 | 6 | Dashboard (`dashboard/`) | Not started |
 
