@@ -22,6 +22,7 @@ boglehead-analyzer/
 ├── analysis/        # Core analysis modules (fetch, returns, portfolio, rebalancing, costs)
 ├── dashboard/       # Dash web app (app, layout, callbacks)
 ├── notebooks/       # Exploratory notebooks, one per module
+│   └── images/      # Matplotlib chart PNGs, saved externally and linked from markdown cells
 ├── tests/           # Unit tests
 ├── data/raw/        # Cached CSV price data (git-ignored)
 ├── requirements.txt
