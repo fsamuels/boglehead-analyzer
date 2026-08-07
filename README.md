@@ -55,9 +55,10 @@ jupyter lab
 
 ## Status
 
-Modules 1 (data ingestion) and 2 (return calculations) are implemented and
-tested. Remaining modules are being built one at a time, each explored in a
-notebook first and then refactored into a clean module — see the per-module PRs.
+Modules 1 (data ingestion), 2 (return calculations), and 3 (portfolio
+construction) are implemented and tested. Remaining modules are being built
+one at a time, each explored in a notebook first and then refactored into a
+clean module — see the per-module PRs.
 
 The configurable ticker universe lives in [`analysis/config.py`](analysis/config.py)
 as `AVAILABLE_TICKERS` (`VTI`, `VXUS`, `VOO`, `VT`, `BND`) with matching
@@ -95,11 +96,32 @@ Explore it in [`notebooks/02_returns.ipynb`](notebooks/02_returns.ipynb); tests
 live in [`tests/test_returns.py`](tests/test_returns.py) and run on small,
 hand-checkable frames (no network).
 
+### Module 3 — Portfolio construction
+
+`analysis/portfolio.py` turns a price frame and a target allocation into a
+simulated lump-sum investment, using NumPy-style weighted operations and
+`pandas` broadcasting. No rebalancing happens here — that's Module 4 — so the
+allocation drifts with the market on its own.
+
+- `validate_weights(weights)` — asserts weights sum to 1.0 (within tolerance).
+- `build_portfolio(prices, weights, initial_investment)` — allocates the
+  investment by weight, converts each ticker's dollar allocation to a share
+  count at its first available price, then revalues daily. Returns a
+  DataFrame with one column per ticker plus a `"total"` column.
+- `portfolio_returns(portfolio_df)` — daily returns on the total portfolio
+  value.
+- `max_drawdown(portfolio_series)` — peak-to-trough maximum decline, as a
+  negative fraction.
+
+Explore it in [`notebooks/03_portfolio.ipynb`](notebooks/03_portfolio.ipynb);
+tests live in [`tests/test_portfolio.py`](tests/test_portfolio.py) and run on
+small, hand-checkable frames (no network).
+
 | Module | Area | Status |
 |---|---|---|
 | 1 | Data ingestion (`analysis/fetch.py`) | ✅ Complete |
 | 2 | Return calculations (`analysis/returns.py`) | ✅ Complete |
-| 3 | Portfolio construction (`analysis/portfolio.py`) | Not started |
+| 3 | Portfolio construction (`analysis/portfolio.py`) | ✅ Complete |
 | 4 | Rebalancing simulator (`analysis/rebalancing.py`) | Not started |
 | 5 | Cost drag analysis (`analysis/costs.py`) | Not started |
 | 6 | Dashboard (`dashboard/`) | Not started |
