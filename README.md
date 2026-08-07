@@ -56,9 +56,10 @@ jupyter lab
 ## Status
 
 Modules 1 (data ingestion), 2 (return calculations), 3 (portfolio
-construction), and 4 (rebalancing simulator) are implemented and tested.
-Remaining modules are being built one at a time, each explored in a notebook
-first and then refactored into a clean module — see the per-module PRs.
+construction), 4 (rebalancing simulator), and 5 (cost drag analysis) are
+implemented and tested. Remaining modules are being built one at a time, each
+explored in a notebook first and then refactored into a clean module — see
+the per-module PRs.
 
 The configurable ticker universe lives in [`analysis/config.py`](analysis/config.py)
 as `AVAILABLE_TICKERS` (`VTI`, `VXUS`, `VOO`, `VT`, `BND`) with matching
@@ -143,13 +144,36 @@ Explore it in [`notebooks/04_rebalancing.ipynb`](notebooks/04_rebalancing.ipynb)
 tests live in [`tests/test_rebalancing.py`](tests/test_rebalancing.py) and run
 on small, hand-checkable frames (no network).
 
+### Module 5 — Cost drag analysis
+
+`analysis/costs.py` shows the compounding impact of expense ratios over
+time — the core Boglehead argument that costs compound just like returns do,
+but against you.
+
+- `apply_expense_ratio(portfolio_series, expense_ratio_annual)` — deducts the
+  annual ratio from a portfolio value series, spread evenly across trading
+  days: each day's growth factor is multiplied by `(1 - expense_ratio / 252)`
+  on top of that day's actual return, then compounded forward. The first
+  observation is left untouched (no time has elapsed to accrue a cost yet).
+- `cost_drag_over_time(initial_investment, annual_return, years, expense_ratios)` —
+  a pure-math projection (no price data needed): for each expense ratio,
+  compounds `(1 + annual_return) * (1 - expense_ratio)` per year. Returns a
+  `DataFrame` indexed by year (0 through `years`), one column per ratio.
+- `compare_funds(portfolio_series, expense_ratios_dict)` — applies a map of
+  `{label: expense_ratio}` scenarios to the same return stream and returns
+  their value series side by side.
+
+Explore it in [`notebooks/05_cost_drag.ipynb`](notebooks/05_cost_drag.ipynb);
+tests live in [`tests/test_costs.py`](tests/test_costs.py) and run on small,
+hand-checkable series (no network).
+
 | Module | Area | Status |
 |---|---|---|
 | 1 | Data ingestion (`analysis/fetch.py`) | ✅ Complete |
 | 2 | Return calculations (`analysis/returns.py`) | ✅ Complete |
 | 3 | Portfolio construction (`analysis/portfolio.py`) | ✅ Complete |
 | 4 | Rebalancing simulator (`analysis/rebalancing.py`) | ✅ Complete |
-| 5 | Cost drag analysis (`analysis/costs.py`) | Not started |
+| 5 | Cost drag analysis (`analysis/costs.py`) | ✅ Complete |
 | 6 | Dashboard (`dashboard/`) | Not started |
 
 ## Disclaimer
